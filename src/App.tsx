@@ -1,136 +1,136 @@
 
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { EchoVerseProvider } from "@/contexts/EchoVerseContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import Index from "./pages/Index";
-import WhyPage from "./pages/WhyPage";
-import HowPage from "./pages/HowPage";
-import NotFound from "./pages/NotFound";
-import Profile from "./pages/Profile";
-import Import from "./pages/Import";
-import SearchPage from "./pages/SearchPage";
-import Settings from "./pages/Settings";
-import ManagePage from "./pages/ManagePage";
-import Navbar from "./components/Navbar";
+import { AuthForm } from "@/components/auth/AuthForm";
+import { Navigation } from "@/components/layout/Navigation";
+import Timeline from "@/pages/Timeline";
+import Record from "@/pages/Record";
+import EntryDetail from "@/pages/EntryDetail";
+import Settings from "@/pages/Settings";
+import Profile from "@/pages/Profile";
 
-const queryClient = new QueryClient();
+// Protected route wrapper
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+  
+  return isAuthenticated ? <>{children}</> : <Navigate to="/auth" replace />;
+};
 
-// Page transition wrapper
-const PageTransition = ({ children }: { children: React.ReactNode }) => {
-  const location = useLocation();
+// Auth route wrapper (redirects to home if already authenticated)
+const AuthRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
   
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
   
+  return !isAuthenticated ? <>{children}</> : <Navigate to="/" replace />;
+};
+
+// Main layout with navigation for authenticated users
+const AuthenticatedLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="transition-opacity duration-300 animate-fade-in">
-      {children}
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      <main className="md:ml-64 pt-8">{children}</main>
     </div>
   );
 };
 
-const AppRoutes = () => {
-  return (
-    <Routes>
-      <Route 
-        path="/" 
-        element={
-          <PageTransition>
-            <Index />
-          </PageTransition>
-        } 
-      />
-      <Route 
-        path="/why" 
-        element={
-          <PageTransition>
-            <WhyPage />
-          </PageTransition>
-        } 
-      />
-      <Route 
-        path="/how" 
-        element={
-          <PageTransition>
-            <HowPage />
-          </PageTransition>
-        } 
-      />
-      <Route 
-        path="/manage" 
-        element={
-          <PageTransition>
-            <ManagePage />
-          </PageTransition>
-        } 
-      />
-      <Route 
-        path="/profile" 
-        element={
-          <PageTransition>
-            <Profile />
-          </PageTransition>
-        } 
-      />
-      <Route 
-        path="/import" 
-        element={
-          <PageTransition>
-            <Import />
-          </PageTransition>
-        } 
-      />
-      <Route 
-        path="/search" 
-        element={
-          <PageTransition>
-            <SearchPage />
-          </PageTransition>
-        } 
-      />
-      <Route 
-        path="/settings" 
-        element={
-          <PageTransition>
-            <Settings />
-          </PageTransition>
-        } 
-      />
-      <Route 
-        path="*" 
-        element={
-          <PageTransition>
-            <NotFound />
-          </PageTransition>
-        } 
-      />
-    </Routes>
-  );
-};
+const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <div className="min-h-screen">
-              <Navbar />
-              <AppRoutes />
-            </div>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <EchoVerseProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route 
+                  path="/auth" 
+                  element={
+                    <AuthRoute>
+                      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary/5 to-background p-4">
+                        <AuthForm />
+                      </div>
+                    </AuthRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/" 
+                  element={
+                    <ProtectedRoute>
+                      <AuthenticatedLayout>
+                        <Timeline />
+                      </AuthenticatedLayout>
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/record" 
+                  element={
+                    <ProtectedRoute>
+                      <AuthenticatedLayout>
+                        <Record />
+                      </AuthenticatedLayout>
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/entry/:id" 
+                  element={
+                    <ProtectedRoute>
+                      <AuthenticatedLayout>
+                        <EntryDetail />
+                      </AuthenticatedLayout>
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/settings" 
+                  element={
+                    <ProtectedRoute>
+                      <AuthenticatedLayout>
+                        <Settings />
+                      </AuthenticatedLayout>
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <AuthenticatedLayout>
+                        <Profile />
+                      </AuthenticatedLayout>
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </BrowserRouter>
+            <Toaster />
+          </EchoVerseProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

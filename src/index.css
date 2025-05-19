@@ -5,7 +5,7 @@
  
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 210 40% 98%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -14,16 +14,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
  
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 240 50% 40%; /* Deep blue */
     --primary-foreground: 210 40% 98%;
  
-    --secondary: 210 40% 96.1%;
+    --secondary: 41 100% 60%; /* Warm gold */
     --secondary-foreground: 222.2 47.4% 11.2%;
  
-    --muted: 210 40% 96.1%;
+    --muted: 270 30% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
  
-    --accent: 210 40% 96.1%;
+    --accent: 270 40% 70%; /* Soft purple */
     --accent-foreground: 222.2 47.4% 11.2%;
  
     --destructive: 0 84.2% 60.2%;
@@ -34,6 +34,13 @@
     --ring: 222.2 84% 4.9%;
  
     --radius: 0.5rem;
+
+    /* EchoVerse specific colors */
+    --teal: 180 50% 60%;
+    --light-blue: 210 70% 80%;
+    --deep-blue: 240 50% 40%;
+    --warm-gold: 41 100% 60%;
+    --soft-purple: 270 40% 70%;
   }
  
   .dark {
@@ -46,16 +53,16 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
  
-    --primary: 210 40% 98%;
+    --primary: 228 56% 60%; /* Lighter deep blue for dark mode */
     --primary-foreground: 222.2 47.4% 11.2%;
  
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 41 80% 65%; /* Adjusted warm gold for dark mode */
     --secondary-foreground: 210 40% 98%;
  
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
  
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 270 50% 60%; /* Adjusted soft purple for dark mode */
     --accent-foreground: 210 40% 98%;
  
     --destructive: 0 62.8% 30.6%;
@@ -90,6 +97,60 @@
   @apply bg-gradient-to-br from-primary/20 to-primary/10 rounded-full shadow-lg;
 }
 
+/* EchoVerse custom classes */
+.echo-card {
+  @apply backdrop-blur-sm bg-white/80 dark:bg-slate-900/80 border border-slate-200/50 dark:border-slate-700/50 rounded-xl shadow-sm transition-all;
+}
+
+.echo-gradient {
+  @apply bg-gradient-to-r from-light-blue via-soft-purple to-teal;
+}
+
+.time-gradient {
+  @apply bg-gradient-to-b from-deep-blue via-soft-purple to-warm-gold opacity-10;
+}
+
+.locked-entry {
+  @apply relative filter grayscale opacity-80;
+}
+
+.unlocked-entry {
+  @apply relative filter saturate-100 opacity-100;
+}
+
+.wave-animation {
+  animation: wave 4s ease-in-out infinite;
+}
+
+@keyframes wave {
+  0%, 100% {
+    clip-path: polygon(
+      0% 45%,
+      16% 44%,
+      33% 50%,
+      54% 60%,
+      70% 61%,
+      84% 59%,
+      100% 52%,
+      100% 100%,
+      0% 100%
+    );
+  }
+  50% {
+    clip-path: polygon(
+      0% 60%,
+      15% 65%,
+      34% 66%,
+      51% 62%,
+      67% 50%,
+      84% 45%,
+      100% 46%,
+      100% 100%,
+      0% 100%
+    );
+  }
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -99,4 +160,12 @@
     opacity: 0.7;
     transform: scale(0.95);
   }
+}
+
+.audio-visualizer {
+  @apply flex items-end justify-center gap-0.5 h-16;
+}
+
+.audio-bar {
+  @apply w-1 bg-primary rounded-t-sm transition-all duration-150;
 }

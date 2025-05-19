@@ -1,213 +1,117 @@
 
-import React, { useState } from 'react';
-import { AnimatedTransition } from '@/components/AnimatedTransition';
-import { useAnimateIn } from '@/lib/animations';
-import ProjectRoadmap from '@/components/ProjectRoadmap';
+import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEchoVerse } from '@/contexts/EchoVerseContext';
+import { UserIcon, MailIcon, CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { UserProfile } from '@/lib/types';
-import { Mail, Save, X, Plus, ExternalLink } from 'lucide-react';
+import { format } from 'date-fns';
 
-const initialProfile: UserProfile = {
-  name: 'Alex Johnson',
-  email: 'alex@example.com',
-  description: 'AI researcher and knowledge management enthusiast. Building a digital second brain to enhance creativity and productivity.',
-  links: [
-    { title: 'Personal Website', url: 'https://example.com' },
-    { title: 'GitHub', url: 'https://github.com' },
-    { title: 'Twitter', url: 'https://twitter.com' },
-  ],
-};
+export const Profile = () => {
+  const { user } = useAuth();
+  const { entries } = useEchoVerse();
+  
+  if (!user) {
+    return null;
+  }
+  
+  // Calculate stats
+  const totalEntries = entries.length;
+  const unlockedEntries = entries.filter(entry => entry.isUnlocked).length;
+  const lockedEntries = totalEntries - unlockedEntries;
+  
+  // Find the next entry to unlock
+  const nextToUnlock = entries
+    .filter(entry => !entry.isUnlocked)
+    .sort((a, b) => new Date(a.unlockAt).getTime() - new Date(b.unlockAt).getTime())[0];
 
-const Profile = () => {
-  const showContent = useAnimateIn(false, 300);
-  const [profile, setProfile] = useState<UserProfile>(initialProfile);
-  const [isEditing, setIsEditing] = useState(false);
-  const [tempProfile, setTempProfile] = useState<UserProfile>(initialProfile);
-  const [tempLink, setTempLink] = useState({ title: '', url: '' });
-  
-  const handleEditProfile = () => {
-    setTempProfile({...profile});
-    setIsEditing(true);
-  };
-  
-  const handleSaveProfile = () => {
-    setProfile({...tempProfile});
-    setIsEditing(false);
-  };
-  
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-  };
-  
-  const handleAddLink = () => {
-    if (tempLink.title && tempLink.url) {
-      setTempProfile({
-        ...tempProfile,
-        links: [...(tempProfile.links || []), tempLink]
-      });
-      setTempLink({ title: '', url: '' });
-    }
-  };
-  
-  const handleRemoveLink = (index: number) => {
-    const newLinks = [...(tempProfile.links || [])];
-    newLinks.splice(index, 1);
-    setTempProfile({
-      ...tempProfile,
-      links: newLinks
-    });
-  };
-  
   return (
-    <div className="max-w-7xl mx-auto px-4 pt-24 pb-16">
-      <AnimatedTransition show={showContent} animation="slide-up">
+    <div className="max-w-7xl mx-auto px-4 pb-20">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="mb-8">
-          {!isEditing ? (
-            <Card className="w-full mb-8">
-              <CardHeader className="flex flex-row items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-2xl font-light">{profile.name.charAt(0)}</span>
+          <h1 className="text-3xl font-serif font-bold">Your Profile</h1>
+          <p className="text-muted-foreground mt-2">
+            Manage your account and view your journey
+          </p>
+        </div>
+        
+        <div className="grid gap-8 md:grid-cols-3">
+          {/* Profile info */}
+          <div className="md:col-span-1">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-border p-6">
+              <div className="flex flex-col items-center text-center mb-6">
+                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
+                  <UserIcon size={40} />
                 </div>
-                
-                <div>
-                  <CardTitle>{profile.name}</CardTitle>
-                  <CardDescription className="flex items-center mt-1">
-                    <Mail className="h-4 w-4 mr-1" />
-                    {profile.email}
-                  </CardDescription>
-                </div>
-                
-                <div className="ml-auto flex gap-2">
-                  {profile.links?.map((link, index) => (
-                    <a 
-                      key={index} 
-                      href={link.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-                    >
-                      {link.title}
-                      <ExternalLink size={14} />
-                    </a>
-                  ))}
-                </div>
-                
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleEditProfile}
-                  className="ml-2"
-                >
-                  Edit Profile
-                </Button>
-              </CardHeader>
-            </Card>
-          ) : (
-            <Card className="w-full mb-8">
-              <CardHeader>
-                <CardTitle>Edit Profile</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Name</Label>
-                    <Input 
-                      id="name" 
-                      value={tempProfile.name}
-                      onChange={(e) => setTempProfile({...tempProfile, name: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
-                      type="email"
-                      value={tempProfile.email}
-                      onChange={(e) => setTempProfile({...tempProfile, email: e.target.value})}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Input 
-                    id="description" 
-                    value={tempProfile.description || ''}
-                    onChange={(e) => setTempProfile({...tempProfile, description: e.target.value})}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Links</Label>
-                  <div className="rounded-md border">
-                    <div className="space-y-2 p-4">
-                      {tempProfile.links?.map((link, index) => (
-                        <div key={index} className="flex items-center justify-between gap-2">
-                          <div className="flex-1 truncate">
-                            <span className="font-medium">{link.title}</span>: {link.url}
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleRemoveLink(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="linkTitle">Link Title</Label>
-                    <Input 
-                      id="linkTitle" 
-                      value={tempLink.title}
-                      onChange={(e) => setTempLink({...tempLink, title: e.target.value})}
-                      placeholder="GitHub"
-                    />
-                  </div>
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="linkUrl">URL</Label>
-                    <div className="flex gap-2">
-                      <Input 
-                        id="linkUrl" 
-                        value={tempLink.url}
-                        onChange={(e) => setTempLink({...tempLink, url: e.target.value})}
-                        placeholder="https://github.com/username"
-                      />
-                      <Button onClick={handleAddLink}>
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-end gap-2">
-                <Button variant="outline" onClick={handleCancelEdit}>Cancel</Button>
-                <Button onClick={handleSaveProfile}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
-                </Button>
-              </CardFooter>
-            </Card>
-          )}
-          
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold">Project Roadmap</h1>
-            <p className="text-muted-foreground mt-2">
-              Track your project journey from start to completion and collect reviews
-            </p>
+                <h2 className="text-xl font-medium">{user.name}</h2>
+                <p className="text-muted-foreground flex items-center mt-1">
+                  <MailIcon size={14} className="mr-1.5" />
+                  {user.email}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1 flex items-center">
+                  <CalendarIcon size={14} className="mr-1.5" />
+                  Joined {format(new Date(user.createdAt), 'MMMM yyyy')}
+                </p>
+              </div>
+              
+              <div className="flex justify-center">
+                <Button variant="outline">Edit Profile</Button>
+              </div>
+            </div>
           </div>
           
-          <ProjectRoadmap />
+          {/* Stats and next unlock */}
+          <div className="md:col-span-2 space-y-6">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-border p-6">
+              <h2 className="text-xl font-medium mb-6">Your Journey</h2>
+              
+              <div className="grid gap-4 md:grid-cols-3 mb-6">
+                <div className="bg-muted/30 rounded-lg p-4 text-center">
+                  <div className="text-3xl font-medium mb-1">{totalEntries}</div>
+                  <div className="text-sm text-muted-foreground">Total Messages</div>
+                </div>
+                <div className="bg-muted/30 rounded-lg p-4 text-center">
+                  <div className="text-3xl font-medium mb-1">{unlockedEntries}</div>
+                  <div className="text-sm text-muted-foreground">Unlocked</div>
+                </div>
+                <div className="bg-muted/30 rounded-lg p-4 text-center">
+                  <div className="text-3xl font-medium mb-1">{lockedEntries}</div>
+                  <div className="text-sm text-muted-foreground">Still Locked</div>
+                </div>
+              </div>
+              
+              {nextToUnlock && (
+                <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
+                  <h3 className="font-medium mb-1">Next message to unlock</h3>
+                  <p className="text-sm">
+                    "{nextToUnlock.title}" will unlock on {format(new Date(nextToUnlock.unlockAt), 'MMMM d, yyyy')}
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-border p-6">
+              <h2 className="text-xl font-medium mb-6">Message Streak</h2>
+              
+              <div className="flex gap-1 justify-center mb-4">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div 
+                    key={i}
+                    className={`w-6 h-6 rounded-sm ${i < 4 ? 'bg-primary/70' : 'bg-muted/50'}`}
+                  />
+                ))}
+              </div>
+              
+              <p className="text-center text-sm text-muted-foreground">
+                You've recorded 4 messages this month. Keep the streak going!
+              </p>
+            </div>
+          </div>
         </div>
-      </AnimatedTransition>
+      </motion.div>
     </div>
   );
 };

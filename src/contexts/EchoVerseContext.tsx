@@ -16,40 +16,8 @@ type EchoVerseContextType = {
 
 const EchoVerseContext = createContext<EchoVerseContextType | undefined>(undefined);
 
-// Mock data for development
-const mockEntries: AudioEntry[] = [
-  {
-    id: '1',
-    userId: '123',
-    title: 'Thoughts on my new job',
-    createdAt: new Date(2024, 4, 15).toISOString(),
-    unlockAt: new Date(2024, 5, 15).toISOString(),
-    mood: 'excited',
-    audioURL: '/assets/audio/demo1.mp3',
-    isUnlocked: true
-  },
-  {
-    id: '2',
-    userId: '123',
-    title: 'Birthday reflections',
-    createdAt: new Date(2024, 3, 10).toISOString(),
-    unlockAt: new Date(2025, 3, 10).toISOString(),
-    mood: 'reflective',
-    audioURL: '/assets/audio/demo2.mp3',
-    isUnlocked: false
-  },
-  {
-    id: '3',
-    userId: '123',
-    title: 'Travel plans',
-    createdAt: new Date(2024, 2, 5).toISOString(),
-    unlockAt: new Date(2024, 4, 5).toISOString(),
-    mood: 'grateful',
-    audioURL: '/assets/audio/demo3.mp3',
-    isUnlocked: true,
-    reflection: 'It\'s amazing how my plans evolved over time!'
-  }
-];
+// Storage key for saving entries to localStorage
+const STORAGE_KEY = 'echoverse_user_entries';
 
 const groupEntriesByYearAndMonth = (entries: AudioEntry[]): TimelineGroup[] => {
   const groups: Record<string, TimelineGroup> = {};
@@ -86,23 +54,22 @@ export function EchoVerseProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      loadEntries();
-    } else {
-      setEntries([]);
-      setTimelineGroups([]);
-    }
+    loadEntries();
   }, [user]);
 
   const loadEntries = async () => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Load entries from localStorage
+      const storedEntries = localStorage.getItem(STORAGE_KEY);
       
-      // For demo, we'll use the mock entries
-      setEntries(mockEntries);
-      setTimelineGroups(groupEntriesByYearAndMonth(mockEntries));
+      let userEntries: AudioEntry[] = [];
+      if (storedEntries) {
+        userEntries = JSON.parse(storedEntries);
+      }
+      
+      setEntries(userEntries);
+      setTimelineGroups(groupEntriesByYearAndMonth(userEntries));
       
       // Check for newly unlocked entries
       const unlockedEntries = await checkForUnlockedEntries();
@@ -119,22 +86,31 @@ export function EchoVerseProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const saveEntriesToStorage = (updatedEntries: AudioEntry[]) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedEntries));
+    } catch (error) {
+      console.error("Error saving entries to storage:", error);
+    }
+  };
+
   const createEntry = async (entryData: Omit<AudioEntry, 'id' | 'userId' | 'createdAt' | 'isUnlocked'>) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo, we'll create a new entry
+      // Create a new entry
       const newEntry: AudioEntry = {
         id: Date.now().toString(),
-        userId: user?.id || '',
+        userId: user?.id || 'anonymous',
         createdAt: new Date().toISOString(),
         isUnlocked: false,
         ...entryData
       };
       
-      setEntries(prev => [newEntry, ...prev]);
-      setTimelineGroups(groupEntriesByYearAndMonth([newEntry, ...entries]));
+      const updatedEntries = [newEntry, ...entries];
+      setEntries(updatedEntries);
+      setTimelineGroups(groupEntriesByYearAndMonth(updatedEntries));
+      
+      // Save to localStorage
+      saveEntriesToStorage(updatedEntries);
       
       toast({
         title: "Entry created!",
@@ -152,18 +128,15 @@ export function EchoVerseProvider({ children }: { children: React.ReactNode }) {
 
   const saveReflection = async (id: string, reflection: string) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setEntries(prev => 
-        prev.map(entry => 
-          entry.id === id ? { ...entry, reflection } : entry
-        )
+      const updatedEntries = entries.map(entry => 
+        entry.id === id ? { ...entry, reflection } : entry
       );
       
-      setTimelineGroups(groupEntriesByYearAndMonth(
-        entries.map(entry => entry.id === id ? { ...entry, reflection } : entry)
-      ));
+      setEntries(updatedEntries);
+      setTimelineGroups(groupEntriesByYearAndMonth(updatedEntries));
+      
+      // Save to localStorage
+      saveEntriesToStorage(updatedEntries);
       
       toast({
         title: "Reflection saved",
@@ -177,7 +150,6 @@ export function EchoVerseProvider({ children }: { children: React.ReactNode }) {
 
   const checkForUnlockedEntries = async (): Promise<AudioEntry[]> => {
     try {
-      // In a real app, this would make an API call to check for newly unlocked entries
       const now = new Date();
       const unlockedEntries: AudioEntry[] = [];
       
@@ -192,6 +164,9 @@ export function EchoVerseProvider({ children }: { children: React.ReactNode }) {
       if (unlockedEntries.length > 0) {
         setEntries(updatedEntries);
         setTimelineGroups(groupEntriesByYearAndMonth(updatedEntries));
+        
+        // Save to localStorage
+        saveEntriesToStorage(updatedEntries);
       }
       
       return unlockedEntries;

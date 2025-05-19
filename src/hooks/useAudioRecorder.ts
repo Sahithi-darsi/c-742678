@@ -32,6 +32,7 @@ export function useAudioRecorder({ maxDuration = 60 }: AudioRecorderOptions = { 
   const timerRef = useRef<number | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
 
   // Clean up on unmount
   useEffect(() => {
@@ -43,8 +44,8 @@ export function useAudioRecorder({ maxDuration = 60 }: AudioRecorderOptions = { 
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      if (state.audioUrl) {
-        URL.revokeObjectURL(state.audioUrl);
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
       }
     };
   }, []);
@@ -81,20 +82,21 @@ export function useAudioRecorder({ maxDuration = 60 }: AudioRecorderOptions = { 
 
   const startRecording = async () => {
     try {
+      // Revoke previous URL if it exists
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+      }
+
       // Reset state
       setState({
         isRecording: false,
         isPaused: false,
         duration: 0,
         audioBlob: null,
-        audioUrl: null, // Fix here - changed from URL.revokeObjectURL()
+        audioUrl: null,
         visualizerData: Array(20).fill(2),
       });
-      
-      // Revoke existing URL if it exists
-      if (state.audioUrl) {
-        URL.revokeObjectURL(state.audioUrl);
-      }
       
       audioChunksRef.current = [];
       
@@ -123,6 +125,9 @@ export function useAudioRecorder({ maxDuration = 60 }: AudioRecorderOptions = { 
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
         const audioUrl = URL.createObjectURL(audioBlob);
+        
+        // Store the URL in the ref for cleanup
+        audioUrlRef.current = audioUrl;
         
         setState(prevState => ({
           ...prevState,
@@ -236,8 +241,9 @@ export function useAudioRecorder({ maxDuration = 60 }: AudioRecorderOptions = { 
   const discardRecording = () => {
     stopRecording();
     
-    if (state.audioUrl) {
-      URL.revokeObjectURL(state.audioUrl);
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
     }
     
     setState({

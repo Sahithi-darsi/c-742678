@@ -100,7 +100,7 @@ export const AudioPlayer = ({ src, waveformData, className }: AudioPlayerProps) 
   };
 
   // Handle seeking
-  const seek = (value: number) => {
+  const seek = (value: number[]) => {
     const audio = audioRef.current;
     if (!audio) return;
     
@@ -110,7 +110,7 @@ export const AudioPlayer = ({ src, waveformData, className }: AudioPlayerProps) 
   };
 
   // Handle volume change
-  const changeVolume = (value: number) => {
+  const changeVolume = (value: number[]) => {
     const audio = audioRef.current;
     if (!audio) return;
     

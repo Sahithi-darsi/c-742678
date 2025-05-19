@@ -87,9 +87,14 @@ export function useAudioRecorder({ maxDuration = 60 }: AudioRecorderOptions = { 
         isPaused: false,
         duration: 0,
         audioBlob: null,
-        audioUrl: state.audioUrl ? URL.revokeObjectURL(state.audioUrl) : null,
+        audioUrl: null, // Fix here - changed from URL.revokeObjectURL()
         visualizerData: Array(20).fill(2),
       });
+      
+      // Revoke existing URL if it exists
+      if (state.audioUrl) {
+        URL.revokeObjectURL(state.audioUrl);
+      }
       
       audioChunksRef.current = [];
       

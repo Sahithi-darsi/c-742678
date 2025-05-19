@@ -42,3 +42,39 @@ export type TimelineGroup = {
   month: number;
   entries: AudioEntry[];
 };
+
+// Adding missing types needed by components
+export type Project = {
+  id: string;
+  title: string;
+  description: string;
+  status: 'active' | 'completed';
+};
+
+export type UserProfile = {
+  name: string;
+  email: string;
+  description: string;
+  links?: { title: string; url: string }[];
+  projects?: Project[];
+};
+
+export type NeuralNodeData = {
+  id: string;
+  title: string;
+  type: 'note' | 'link' | 'file' | 'image' | 'project';
+  connections: string[];
+  x?: number | string;
+  y?: number | string;
+  size?: number;
+  color?: string;
+  content?: string;
+};
+
+export type ImportSource = {
+  id: string;
+  name: string;
+  type: 'csv' | 'api' | 'url' | 'file' | 'text';
+  icon: string;
+  description: string;
+};

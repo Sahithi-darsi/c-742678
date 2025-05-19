@@ -53,6 +53,12 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// Add the EchoVerse custom colors
+				'light-blue': 'hsl(210, 70%, 80%)',
+				'deep-blue': 'hsl(240, 50%, 40%)',
+				'warm-gold': 'hsl(41, 100%, 60%)',
+				'soft-purple': 'hsl(270, 40%, 70%)',
+				'teal': 'hsl(180, 50%, 60%)',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

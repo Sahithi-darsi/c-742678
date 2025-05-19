@@ -83,10 +83,11 @@ export const Visualization: React.FC = () => {
       {showConnections && connections.map((conn, index) => {
         if (!conn.from || !conn.to) return null;
         
-        const fromX = conn.from.x || 0;
-        const fromY = conn.from.y || 0;
-        const toX = conn.to.x || 0;
-        const toY = conn.to.y || 0;
+        // Fix: Ensure coordinates are numbers by using Number() conversion
+        const fromX = typeof conn.from.x === 'number' ? conn.from.x : Number(conn.from.x) || 0;
+        const fromY = typeof conn.from.y === 'number' ? conn.from.y : Number(conn.from.y) || 0;
+        const toX = typeof conn.to.x === 'number' ? conn.to.x : Number(conn.to.x) || 0;
+        const toY = typeof conn.to.y === 'number' ? conn.to.y : Number(conn.to.y) || 0;
         
         // Calculate line properties
         const dx = toX - fromX;

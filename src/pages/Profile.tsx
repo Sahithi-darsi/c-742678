@@ -100,13 +100,14 @@ export const Profile = () => {
                 {Array.from({ length: 12 }).map((_, i) => (
                   <div 
                     key={i}
-                    className={`w-6 h-6 rounded-sm ${i < 4 ? 'bg-primary/70' : 'bg-muted/50'}`}
+                    className={`w-6 h-6 rounded-sm ${i < totalEntries ? 'bg-primary/70' : 'bg-muted/50'}`}
                   />
                 ))}
               </div>
               
               <p className="text-center text-sm text-muted-foreground">
-                You've recorded 4 messages this month. Keep the streak going!
+                You've recorded {totalEntries} message{totalEntries !== 1 ? 's' : ''}.
+                {totalEntries > 0 ? ' Keep the streak going!' : ' Record your first message!'}
               </p>
             </div>
           </div>

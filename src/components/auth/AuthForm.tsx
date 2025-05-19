@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -39,7 +38,7 @@ type ResetFormValues = z.infer<typeof resetSchema>;
 type AuthMode = 'login' | 'register' | 'reset';
 
 export const AuthForm = () => {
-  const [mode, setMode] = useState<AuthMode>('login');
+  const [mode, setMode] = useState<AuthMode>('register');  // Default to register instead of login
   const { login, register: registerUser, resetPassword } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -82,7 +81,7 @@ export const AuthForm = () => {
       console.error(error);
       toast({
         title: "Login failed",
-        description: "Please check your credentials and try again.",
+        description: "Please check your credentials or sign up if you don't have an account.",
         variant: "destructive",
       });
     } finally {
@@ -153,6 +152,9 @@ export const AuthForm = () => {
               transition={{ duration: 0.3 }}
             >
               <h2 className="text-xl font-serif font-bold mb-4">Welcome Back</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Sign in with your email and password. Not registered yet? Please sign up first.
+              </p>
               
               <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
                 <div className="space-y-2">

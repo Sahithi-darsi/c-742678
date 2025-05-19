@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
 
 type AuthContextType = {
   user: User | null;
@@ -28,9 +29,15 @@ const mockUser: User = {
   createdAt: new Date().toISOString()
 };
 
+// Mock database of registered users
+const registeredUsers: Record<string, User> = {
+  'user@example.com': mockUser,
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check if user is logged in from localStorage or session
@@ -59,13 +66,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // For demo, we'll use the mock user
-      setUser(mockUser);
+      // Check if the user exists in our mock database
+      const registeredUser = registeredUsers[email];
+      
+      if (!registeredUser) {
+        throw new Error("User not registered. Please sign up first.");
+      }
+      
+      // For demo, we'll use the registered user
+      setUser(registeredUser);
       
       if (remember) {
-        localStorage.setItem('echoverse_user', JSON.stringify(mockUser));
+        localStorage.setItem('echoverse_user', JSON.stringify(registeredUser));
       } else {
-        sessionStorage.setItem('echoverse_user', JSON.stringify(mockUser));
+        sessionStorage.setItem('echoverse_user', JSON.stringify(registeredUser));
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -82,15 +96,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // For demo, we'll use the mock user but update the email and name
+      // Check if the user already exists
+      if (registeredUsers[email]) {
+        throw new Error("User already exists. Please login instead.");
+      }
+      
+      // Create a new user
       const newUser = {
         ...mockUser,
+        id: Math.random().toString(36).substring(2, 15),
         email,
-        name
+        name,
+        createdAt: new Date().toISOString()
       };
+      
+      // Add to our mock database
+      registeredUsers[email] = newUser;
       
       setUser(newUser);
       localStorage.setItem('echoverse_user', JSON.stringify(newUser));
+      
+      toast({
+        title: "Registration successful",
+        description: "Your account has been created."
+      });
     } catch (error) {
       console.error("Registration error:", error);
       throw error;
@@ -109,6 +138,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Check if the user exists
+      if (!registeredUsers[email]) {
+        throw new Error("Email not found. Please sign up first.");
+      }
       
       // Mock implementation for demo purposes
       console.log(`Password reset email sent to ${email}`);

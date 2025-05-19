@@ -1,8 +1,14 @@
 
 import { motion } from 'framer-motion';
 import { RecordForm } from '@/components/record/RecordForm';
+import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Mic, LogIn } from 'lucide-react';
 
 export const Record = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <div className="max-w-7xl mx-auto px-4 pb-20">
       <motion.div
@@ -17,7 +23,25 @@ export const Record = () => {
           </p>
         </div>
         
-        <RecordForm />
+        {isAuthenticated ? (
+          <RecordForm />
+        ) : (
+          <div className="bg-muted/30 rounded-xl p-8 text-center my-10">
+            <div className="mb-4 w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <LogIn size={28} className="text-primary" />
+            </div>
+            <h2 className="text-xl font-medium mb-2">Authentication Required</h2>
+            <p className="text-muted-foreground max-w-md mx-auto mb-6">
+              Please sign in to record voice messages for your future self.
+            </p>
+            <Link to="/auth">
+              <Button className="gap-2">
+                <LogIn size={18} />
+                <span>Sign In</span>
+              </Button>
+            </Link>
+          </div>
+        )}
       </motion.div>
     </div>
   );
